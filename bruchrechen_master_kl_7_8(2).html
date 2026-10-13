@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Das Rätsel des Arithmeum-Tresors • Bruchrechnen Kl. 7/8</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- MathJax for Math Rendering -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --font-tech: 'Orbitron', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: #090d16;
+            color: #f1f5f9;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .font-tech { font-family: var(--font-tech); }
+        .font-code { font-family: var(--font-code); }
+
+        /* Cyber Terminal Styling */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.90);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.7);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .cyber-btn {
+            clip-path: polygon(10px 0%, 100% 0%, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0% 100%, 0% 10px);
+            transition: all 0.2s ease-in-out;
+        }
+        .cyber-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Pure White Worksheet Style (Screen Mode) */
+        .worksheet-page {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            width: 210mm;
+            height: 297mm;
+            min-height: 297mm;
+            max-height: 297mm;
+            margin: 15px auto;
+            padding: 10mm 12mm;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        /* 5mm x 5mm Math Karo Grid Pattern */
+        .karo-grid {
+            background-size: 5mm 5mm;
+            background-image: 
+                linear-gradient(to right, #d1d5db 1px, transparent 1px),
+                linear-gradient(to bottom, #d1d5db 1px, transparent 1px);
+            border: 1.5px solid #374151;
+            border-radius: 4px;
+            width: 100%;
+            background-color: #ffffff;
+        }
+
+        /* Per-field correctness markers */
+        .field-correct {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35);
+        }
+        .field-incorrect {
+            border-color: #f43f5e !important;
+        }
+
+        /* Visual Pyramid Building Blocks */
+        .pyr-box {
+            border: 2px solid #334155;
+            border-radius: 8px;
+            background: #0f172a;
+            text-align: center;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        /* STRICT EXACT 2-PAGE PRINT MEDIA QUERY */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0mm !important;
+            }
+
+            html, body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            #worksheetContainer {
+                display: block !important;
+                width: 210mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .worksheet-page {
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                max-height: 297mm !important;
+                padding: 10mm 12mm !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+            }
+
+            .page-break-after-strict {
+                break-after: page !important;
+                page-break-after: always !important;
+            }
+
+            .prevent-break {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-white sticky top-0 z-50 no-print shadow-xl">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                    <i class="fa-solid fa-vault"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold font-tech tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-300 to-emerald-400">
+                        DAS ARITHMEUM
+                    </h1>
+                    <p class="text-xs text-slate-400">Bruchrechen-Escape-Room • Klasse 7 & 8</p>
+                </div>
+            </div>
+
+            <!-- Mode Switcher Buttons -->
+            <div class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+                <button onclick="switchView('terminal')" id="navTerminal" class="px-4 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-terminal text-cyan-300"></i> Terminal (Schüler)
+                </button>
+                <button onclick="switchView('worksheet')" id="navWorksheet" class="px-4 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider text-slate-400 hover:text-white flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-file-invoice text-indigo-400"></i> Arbeitsblatt (Lehrer)
+                </button>
+                <button onclick="triggerPrint()" class="px-3 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-print"></i> Drucken (2 Seiten)
+                </button>
+            </div>
+
+            <a href="index.html" class="no-print px-4 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-house"></i> Hauptmenü
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6">
+
+        <div id="terminalView" class="space-y-8 no-print">
+
+            <!-- Hero Status Banner -->
+            <div class="glass-card rounded-2xl p-6 border border-slate-800 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-tech bg-indigo-950 text-indigo-300 border border-indigo-800 uppercase tracking-widest">
+                                Missions-Briefing
+                            </span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-tech bg-emerald-950 text-emerald-300 border border-emerald-800 uppercase tracking-widest">
+                                Status: Verschlüsselt
+                            </span>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold font-tech text-white">Knacke das Arithmeum-System</h2>
+                        <p class="text-xs md:text-sm text-slate-400 mt-1 max-w-2xl">
+                            Löse die 4 mathematischen Sektoren. Jeder korrekt berechnete Sektor liefert dir eine Geheimziffer für den 4-stelligen Tresor-Code!
+                        </p>
+                        <p class="text-xs text-amber-300 mt-2 max-w-2xl flex items-start gap-1.5">
+                            <span>&#9888;</span>
+                            <span>Wichtig: Schreibe deine Nebenrechnungen zu jeder Aufgabe als <strong>fortlaufende Rechnung</strong> (Schritt für Schritt untereinander) auf dein Arbeitsblatt – nicht nur das Endergebnis hier eintippen!</span>
+                        </p>
+                    </div>
+
+                    <!-- Overall Terminal Progress -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 min-w-[210px] text-center shadow-inner">
+                        <div class="text-[10px] font-bold font-tech uppercase tracking-wider text-slate-400 mb-1">System-Freischaltung</div>
+                        <div class="text-2xl font-black font-tech text-emerald-400 mb-2" id="termProgressText">0 / 4 SEKTOREN</div>
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                            <div id="termProgressBar" class="bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 h-full w-0 rounded-full transition-all duration-500"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTORS INTERACTIVE GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- SECTOR 1 CARD -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col justify-between space-y-4" id="cardSector1">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-lg bg-indigo-950 border border-indigo-700 text-indigo-300 font-tech font-bold text-sm flex items-center justify-center">01</span>
+                                <h3 class="font-bold font-tech text-base text-white">Sektor 1: Vorrang & Klammern</h3>
+                            </div>
+                            <span id="badge1" class="text-[11px] font-bold font-tech px-2.5 py-1 rounded-md bg-slate-800 text-slate-400 border border-slate-700">VERSCHLOSSEN</span>
+                        </div>
+
+                        <p class="text-xs text-slate-300 mb-3">Berechne beide Terme unter Beachtung von Vorrangregeln und kürze vollständig:</p>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                                <div class="font-medium text-indigo-200">Aufgabe a): &nbsp; $\left(\frac{3}{4} - \frac{1}{6}\right) \cdot \frac{12}{7}$</div>
+                                <input type="text" id="t_1a" placeholder="Eingabe (z. B. 3/4 oder 1 1/2)" oninput="clearFieldMark(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-code text-xs focus:outline-none focus:border-indigo-500 transition-colors">
+                            </div>
+
+                            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                                <div class="font-medium text-indigo-200">Aufgabe b): &nbsp; $\frac{5}{8} + \frac{3}{8} \div \frac{9}{4}$</div>
+                                <input type="text" id="t_1b" placeholder="Eingabe (gekürzter Bruch)" oninput="clearFieldMark(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-code text-xs focus:outline-none focus:border-indigo-500 transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <div class="flex gap-2">
+                            <button onclick="toggleHint(1)" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-xl py-2 text-xs font-bold font-tech transition-all flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-lightbulb"></i> Tipp
+                            </button>
+                            <button onclick="verifySector1()" class="w-2/3 cyber-btn bg-indigo-600 hover:bg-indigo-500 text-white font-tech font-bold py-2 text-xs uppercase tracking-wider transition-all">
+                                Überprüfen
+                            </button>
+                        </div>
+                        <div id="hintBox1" class="hidden text-xs bg-amber-950/40 border border-amber-800/60 text-amber-200 p-3 rounded-xl font-mono">
+                            <strong class="text-amber-400"><i class="fa-solid fa-compass"></i> Sokratischer Hinweis:</strong>
+                            <p class="text-[11px] leading-relaxed mt-1">
+                                • a) Subtrahiere zuerst in der Klammer mit dem Hauptnenner 12. Multipliziere dann Zähler mit Zähler und Nenner mit Nenner.<br>
+                                • b) Erst dividieren ($\frac{3}{8} \cdot \frac{4}{9}$), dann kürzen und zum Schluss die beiden Brüche addieren.
+                            </p>
+                        </div>
+                        <div id="fb1" class="hidden text-xs p-3 rounded-xl font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- SECTOR 2 CARD -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col justify-between space-y-4" id="cardSector2">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-lg bg-indigo-950 border border-indigo-700 text-indigo-300 font-tech font-bold text-sm flex items-center justify-center">02</span>
+                                <h3 class="font-bold font-tech text-base text-white">Sektor 2: Fehler-Detektiv</h3>
+                            </div>
+                            <span id="badge2" class="text-[11px] font-bold font-tech px-2.5 py-1 rounded-md bg-slate-800 text-slate-400 border border-slate-700">VERSCHLOSSEN</span>
+                        </div>
+
+                        <p class="text-xs text-slate-300 mb-2">Schüler "Ben" hat bei der Aufgabenstellung einen schweren Fehler gemacht. Analysiere seine Rechnung:</p>
+
+                        <div class="bg-rose-950/30 border border-rose-900/60 p-3 rounded-xl text-xs space-y-1 mb-3">
+                            <div class="font-bold text-rose-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bug text-rose-400"></i> Bens falscher Rechenweg:
+                            </div>
+                            <div class="text-slate-300 font-mono text-[11px] leading-relaxed pt-1">
+                                $$\frac{2}{3} + \frac{1}{3} \cdot \frac{1}{2} \;=\; \frac{3}{3} \cdot \frac{1}{2} \;=\; 1 \cdot \frac{1}{2} \;=\; \frac{1}{2} \quad \text{(FALSCH!)}$$
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                            <label class="block font-medium text-xs text-indigo-200">Korrektes Ergebnis (gekürzter Bruch):</label>
+                            <input type="text" id="t_2" placeholder="Eingabe der richtigen Lösung..." oninput="clearFieldMark(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-code text-xs focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <div class="flex gap-2">
+                            <button onclick="toggleHint(2)" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-xl py-2 text-xs font-bold font-tech transition-all flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-lightbulb"></i> Tipp
+                            </button>
+                            <button onclick="verifySector2()" class="w-2/3 cyber-btn bg-indigo-600 hover:bg-indigo-500 text-white font-tech font-bold py-2 text-xs uppercase tracking-wider transition-all">
+                                Überprüfen
+                            </button>
+                        </div>
+                        <div id="hintBox2" class="hidden text-xs bg-amber-950/40 border border-amber-800/60 text-amber-200 p-3 rounded-xl font-mono">
+                            <strong class="text-amber-400"><i class="fa-solid fa-compass"></i> Sokratischer Hinweis:</strong>
+                            <p class="text-[11px] leading-relaxed mt-1">
+                                Ben hat fälschlicherweise zuerst die Plus-Aufgabe addiert ($\frac{2}{3}+\frac{1}{3}$). Beachte die eiserne Regel: <strong>Punkt-vor-Strichrechnung!</strong> Multipliziere erst $\frac{1}{3} \cdot \frac{1}{2}$ und addiere das Produkt danach zu $\frac{2}{3}$.
+                            </p>
+                        </div>
+                        <div id="fb2" class="hidden text-xs p-3 rounded-xl font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- SECTOR 3 CARD -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col justify-between space-y-4" id="cardSector3">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-lg bg-indigo-950 border border-indigo-700 text-indigo-300 font-tech font-bold text-sm flex items-center justify-center">03</span>
+                                <h3 class="font-bold font-tech text-base text-white">Sektor 3: Sachaufgabe & Pyramide</h3>
+                            </div>
+                            <span id="badge3" class="text-[11px] font-bold font-tech px-2.5 py-1 rounded-md bg-slate-800 text-slate-400 border border-slate-700">VERSCHLOSSEN</span>
+                        </div>
+
+                        <div class="space-y-4 text-xs">
+                            <!-- Part A -->
+                            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                                <div class="font-medium text-indigo-200">
+                                    <strong>Teil A (Schulfest-Getränke):</strong> Für das Schulfest stehen 120 Liter Getränke bereit. $\frac{3}{5}$ davon ist Apfelsaft, $\frac{1}{4}$ der Gesamtmenge ist Mineralwasser. Der Rest ist Orangensaft.
+                                </div>
+                                <label class="block text-[11px] text-slate-400">Wie viele Liter sind Orangensaft?</label>
+                                <input type="text" id="t_3a" placeholder="Anzahl in Litern..." oninput="clearFieldMark(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-code text-xs focus:outline-none focus:border-indigo-500 transition-colors">
+                            </div>
+
+                            <!-- Part B Pyramid -->
+                            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                                <div class="font-medium text-indigo-200">
+                                    <strong>Teil B (Multiplikations-Pyramide):</strong> Jeder Stein ist das Produkt ($\cdot$) der zwei darunter liegenden Steine.
+                                </div>
+                                
+                                <!-- Visual Pyramid Interactive UI -->
+                                <div class="py-2 flex flex-col items-center gap-1.5 font-mono">
+                                    <!-- Top Row -->
+                                    <div class="w-24 h-9 pyr-box border-amber-500 text-amber-300 text-xs">
+                                        <input type="text" id="t_3b" placeholder="Spitze?" oninput="clearFieldMark(this)" class="w-full bg-transparent text-center text-amber-300 font-bold focus:outline-none">
+                                    </div>
+                                    <!-- Middle Row -->
+                                    <div class="flex gap-2">
+                                        <div class="w-20 h-8 pyr-box border-cyan-600 text-cyan-300 text-[11px]">
+                                            <input type="text" id="t_3b_m1" placeholder="?" oninput="clearFieldMark(this)" class="w-full bg-transparent text-center text-cyan-300 font-bold focus:outline-none text-[11px]">
+                                        </div>
+                                        <div class="w-20 h-8 pyr-box border-cyan-600 text-cyan-300 text-[11px]">
+                                            <input type="text" id="t_3b_m2" placeholder="?" oninput="clearFieldMark(this)" class="w-full bg-transparent text-center text-cyan-300 font-bold focus:outline-none text-[11px]">
+                                        </div>
+                                    </div>
+                                    <!-- Bottom Row -->
+                                    <div class="flex gap-2">
+                                        <div class="w-16 h-7 pyr-box text-slate-400 text-[10px]">-2/3</div>
+                                        <div class="w-16 h-7 pyr-box text-slate-400 text-[10px]">-1/2</div>
+                                        <div class="w-16 h-7 pyr-box text-slate-400 text-[10px]">-3/2</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <div class="flex gap-2">
+                            <button onclick="toggleHint(3)" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-xl py-2 text-xs font-bold font-tech transition-all flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-lightbulb"></i> Tipp
+                            </button>
+                            <button onclick="verifySector3()" class="w-2/3 cyber-btn bg-indigo-600 hover:bg-indigo-500 text-white font-tech font-bold py-2 text-xs uppercase tracking-wider transition-all">
+                                Überprüfen
+                            </button>
+                        </div>
+                        <div id="hintBox3" class="hidden text-xs bg-amber-950/40 border border-amber-800/60 text-amber-200 p-3 rounded-xl font-mono">
+                            <strong class="text-amber-400"><i class="fa-solid fa-compass"></i> Sokratischer Hinweis:</strong>
+                            <p class="text-[11px] leading-relaxed mt-1">
+                                • Teil A: Berechne die Liter von Apfelsaft ($\frac{3}{5} \cdot 120$) und Mineralwasser ($\frac{1}{4} \cdot 120$) und ziehe beide von 120 ab.<br>
+                                • Teil B: Rechne dich von unten nach oben hoch! Multipliziere zuerst jeweils zwei benachbarte Steine der unteren Reihe, z. B. $-\frac{2}{3} \cdot \left(-\frac{1}{2}\right)$, um die mittlere Reihe zu erhalten. Danach ergibt die Multiplikation der beiden mittleren Steine die Spitze.
+                            </p>
+                        </div>
+                        <div id="fb3" class="hidden text-xs p-3 rounded-xl font-mono"></div>
+                    </div>
+                </div>
+
+                <!-- SECTOR 4 CARD -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col justify-between space-y-4" id="cardSector4">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-8 h-8 rounded-lg bg-indigo-950 border border-indigo-700 text-indigo-300 font-tech font-bold text-sm flex items-center justify-center">04</span>
+                                <h3 class="font-bold font-tech text-base text-white">Sektor 4: Der Meister-Doppelbruch</h3>
+                            </div>
+                            <span id="badge4" class="text-[11px] font-bold font-tech px-2.5 py-1 rounded-md bg-slate-800 text-slate-400 border border-slate-700">VERSCHLOSSEN</span>
+                        </div>
+
+                        <p class="text-xs text-slate-300 mb-2">Berechne den komplexen Doppelbruch schrittweise durch Ausrechnen von Zähler und Nenner:</p>
+
+                        <div class="bg-slate-950/90 p-4 rounded-xl border border-slate-800 text-center font-bold text-sm text-cyan-300 mb-3 shadow-inner">
+                            $$\frac{\left(2\frac{1}{2} - \frac{3}{4}\right) \cdot \frac{2}{7}}{\frac{5}{6} + \frac{1}{3} \div 2} = ?$$
+                        </div>
+
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                            <label class="block font-medium text-xs text-indigo-200">Gekürztes Endergebnis:</label>
+                            <input type="text" id="t_4" placeholder="Eingabe (z. B. 1/2)..." oninput="clearFieldMark(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-code text-xs focus:outline-none focus:border-indigo-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-slate-800">
+                        <div class="flex gap-2">
+                            <button onclick="toggleHint(4)" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-xl py-2 text-xs font-bold font-tech transition-all flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-lightbulb"></i> Tipp
+                            </button>
+                            <button onclick="verifySector4()" class="w-2/3 cyber-btn bg-indigo-600 hover:bg-indigo-500 text-white font-tech font-bold py-2 text-xs uppercase tracking-wider transition-all">
+                                Überprüfen
+                            </button>
+                        </div>
+                        <div id="hintBox4" class="hidden text-xs bg-amber-950/40 border border-amber-800/60 text-amber-200 p-3 rounded-xl font-mono">
+                            <strong class="text-amber-400"><i class="fa-solid fa-compass"></i> Sokratischer Hinweis:</strong>
+                            <p class="text-[11px] leading-relaxed mt-1">
+                                • Zähler oben: $2\frac{1}{2}-\frac{3}{4} = \frac{5}{2}-\frac{3}{4} = \frac{7}{4}$. Dann $\frac{7}{4} \cdot \frac{2}{7} = \frac{1}{2}$.<br>
+                                • Nenner unten: Erst Division $\frac{1}{3} \div 2 = \frac{1}{6}$. Dann $\frac{5}{6}+\frac{1}{6} = 1$.<br>
+                                • Doppelbruch = $\frac{1/2}{1} = \frac{1}{2}$.
+                            </p>
+                        </div>
+                        <div id="fb4" class="hidden text-xs p-3 rounded-xl font-mono"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- KEYPAD FINAL SECTION -->
+            <div class="glass-card rounded-2xl p-6 border-2 border-slate-800 text-center space-y-6 shadow-2xl relative overflow-hidden">
+                <div class="max-w-xl mx-auto space-y-2">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold font-tech bg-indigo-950 text-indigo-300 border border-indigo-800 uppercase tracking-widest">
+                        Finale Sicherheitsstufe
+                    </span>
+                    <h3 class="text-2xl font-black font-tech text-white">Arithmeum Tresor-Keypad</h3>
+                    <p class="text-xs text-slate-400">
+                        Ermittle die 4 Code-Ziffern aus deinen gelösten Sektoren und gib sie hier ein:
+                    </p>
+                </div>
+
+                <!-- Digit Display -->
+                <div class="inline-flex gap-3 md:gap-4 bg-slate-950 px-6 py-4 rounded-2xl border border-slate-800 shadow-inner">
+                    <div class="w-12 h-14 bg-slate-900 border-2 border-slate-700 rounded-xl flex flex-col items-center justify-center">
+                        <span class="text-[9px] text-slate-500 font-tech font-bold uppercase">Sektor 1</span>
+                        <span id="key1" class="text-2xl font-mono font-bold text-slate-600">_</span>
+                    </div>
+                    <div class="w-12 h-14 bg-slate-900 border-2 border-slate-700 rounded-xl flex flex-col items-center justify-center">
+                        <span class="text-[9px] text-slate-500 font-tech font-bold uppercase">Sektor 2</span>
+                        <span id="key2" class="text-2xl font-mono font-bold text-slate-600">_</span>
+                    </div>
+                    <div class="w-12 h-14 bg-slate-900 border-2 border-slate-700 rounded-xl flex flex-col items-center justify-center">
+                        <span class="text-[9px] text-slate-500 font-tech font-bold uppercase">Sektor 3</span>
+                        <span id="key3" class="text-2xl font-mono font-bold text-slate-600">_</span>
+                    </div>
+                    <div class="w-12 h-14 bg-slate-900 border-2 border-slate-700 rounded-xl flex flex-col items-center justify-center">
+                        <span class="text-[9px] text-slate-500 font-tech font-bold uppercase">Sektor 4</span>
+                        <span id="key4" class="text-2xl font-mono font-bold text-slate-600">_</span>
+                    </div>
+                </div>
+
+                <!-- Keypad Controls -->
+                <div class="max-w-xs mx-auto grid grid-cols-3 gap-3">
+                    <button onclick="pressDigit('1')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">1</button>
+                    <button onclick="pressDigit('2')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">2</button>
+                    <button onclick="pressDigit('3')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">3</button>
+                    <button onclick="pressDigit('4')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">4</button>
+                    <button onclick="pressDigit('5')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">5</button>
+                    <button onclick="pressDigit('6')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">6</button>
+                    <button onclick="pressDigit('7')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">7</button>
+                    <button onclick="pressDigit('8')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">8</button>
+                    <button onclick="pressDigit('9')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">9</button>
+                    <button onclick="clearNumpad()" class="py-3 bg-rose-950/80 hover:bg-rose-900 text-rose-300 rounded-xl font-tech font-bold text-xs border border-rose-800 transition-all">LÖSCHEN</button>
+                    <button onclick="pressDigit('0')" class="py-3 bg-slate-800 hover:bg-slate-700 active:bg-indigo-600 rounded-xl font-tech font-bold text-lg text-white border border-slate-700 shadow transition-all">0</button>
+                    <button onclick="unlockVault()" class="py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-tech font-bold text-xs shadow-lg transition-all">ÖFFNEN</button>
+                </div>
+
+                <div id="vaultModal" class="hidden max-w-md mx-auto p-4 rounded-xl font-mono text-xs"></div>
+            </div>
+
+            <!-- FULL SOLUTION (revealed after successful unlock) -->
+            <div id="fullSolutionCard" class="hidden glass-card rounded-2xl p-6 border-2 border-emerald-700 space-y-5">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-emerald-400"></i>
+                    <h3 class="text-lg font-bold font-tech text-white">Komplette Musterlösung</h3>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold font-tech uppercase tracking-wider text-indigo-300">Sektor 1: Vorrang & Klammern</h4>
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 space-y-2">
+                        <p>a) $\left(\frac{3}{4}-\frac{1}{6}\right)\cdot\frac{12}{7} = \frac{7}{12}\cdot\frac{12}{7} = 1$</p>
+                        <p>b) $\frac{5}{8}+\frac{3}{8}\div\frac{9}{4} = \frac{5}{8}+\frac{3}{8}\cdot\frac{4}{9} = \frac{5}{8}+\frac{1}{6} = \frac{15}{24}+\frac{4}{24} = \frac{19}{24}$</p>
+                        <p class="text-slate-400">Code-Ziffer 1 = Nenner von b) − Zähler von b) = 24 − 19 = <strong class="text-emerald-300">5</strong></p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold font-tech uppercase tracking-wider text-indigo-300">Sektor 2: Fehler-Detektiv</h4>
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 space-y-2">
+                        <p>$\frac{2}{3}+\frac{1}{3}\cdot\frac{1}{2} = \frac{2}{3}+\frac{1}{6} = \frac{4}{6}+\frac{1}{6} = \frac{5}{6}$</p>
+                        <p class="text-slate-400">Code-Ziffer 2 = Nenner des Ergebnisses = <strong class="text-emerald-300">6</strong></p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold font-tech uppercase tracking-wider text-indigo-300">Sektor 3: Sachaufgabe & Pyramide</h4>
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 space-y-2">
+                        <p><strong>Teil A:</strong> Apfelsaft $=\frac{3}{5}\cdot120=72\text{ l}$, Mineralwasser $=\frac{1}{4}\cdot120=30\text{ l}$, Orangensaft $=120-72-30=18\text{ l}$</p>
+                        <p><strong>Teil B:</strong> $-\frac{2}{3}\cdot\left(-\frac{1}{2}\right)=\frac{1}{3}$, $-\frac{1}{2}\cdot\left(-\frac{3}{2}\right)=\frac{3}{4}$, Spitze $=\frac{1}{3}\cdot\frac{3}{4}=\frac{1}{4}$</p>
+                        <p class="text-slate-400">Code-Ziffer 3 = Quersumme(18) = 1 + 8 = <strong class="text-emerald-300">9</strong></p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold font-tech uppercase tracking-wider text-indigo-300">Sektor 4: Der Meister-Doppelbruch</h4>
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 space-y-2">
+                        <p><strong>Zähler:</strong> $2\frac{1}{2}-\frac{3}{4}=\frac{10}{4}-\frac{3}{4}=\frac{7}{4}$, dann $\frac{7}{4}\cdot\frac{2}{7}=\frac{1}{2}$</p>
+                        <p><strong>Nenner:</strong> $\frac{1}{3}\div2=\frac{1}{6}$, dann $\frac{5}{6}+\frac{1}{6}=1$</p>
+                        <p>Doppelbruch $=\dfrac{\frac{1}{2}}{1} = \frac{1}{2}$</p>
+                        <p class="text-slate-400">Code-Ziffer 4 = Zähler + Nenner = 1 + 2 = <strong class="text-emerald-300">3</strong></p>
+                    </div>
+                </div>
+
+                <div class="text-center pt-2 border-t border-slate-800">
+                    <span class="text-xs text-slate-400">Vollständiger Tresor-Code: </span>
+                    <span class="text-lg font-mono font-black text-emerald-400 tracking-widest">5 6 9 3</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="worksheetContainer" class="hidden">
+
+            <!-- PAGE 1: FRONT SIDE -->
+            <div class="worksheet-page page-break-after-strict">
+                <!-- Header -->
+                <div class="border-b-2 border-slate-900 pb-2 flex justify-between items-end prevent-break">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-700">Mathematik Kl. 7/8 • Individuelle Förderung</span>
+                        <h1 class="text-xl font-black uppercase tracking-tight text-slate-900 mt-0.5">Das Rätsel des Arithmeum-Tresors</h1>
+                        <p class="text-[10px] text-slate-600">Löse die 4 Sektoren, berechne die Code-Ziffern & knacke den digitalen Tresor!</p>
+                    </div>
+                    <div class="text-right text-[11px] space-y-1 font-medium border-l-2 border-slate-300 pl-4">
+                        <p><strong>Name:</strong> ________________________</p>
+                        <p><strong>Klasse:</strong> _________ &nbsp; <strong>Datum:</strong> _________</p>
+                    </div>
+                </div>
+
+                <!-- IMPORTANT NOTE -->
+                <div class="bg-amber-50 border border-amber-400 rounded-md px-2 py-1 mt-1.5 text-[9.5px] text-amber-900 font-semibold flex items-start gap-1.5 prevent-break">
+                    <span>&#9888;</span>
+                    <span>Wichtig: Schreibe deine Nebenrechnungen zu jeder Aufgabe als <u>fortlaufende Rechnung</u> (Schritt für Schritt untereinander) in die Kästchen – keine losen Zahlen ohne Rechenweg!</span>
+                </div>
+
+                <!-- SECTOR 1 PRINT -->
+                <div class="border-2 border-slate-900 rounded-lg p-3 bg-white space-y-2 prevent-break my-2">
+                    <div class="flex justify-between items-center border-b border-slate-300 pb-1">
+                        <h2 class="font-bold text-xs text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                            <span class="w-5 h-5 bg-slate-900 text-white text-[10px] rounded flex items-center justify-center font-mono">01</span>
+                            Sektor 1: Vorrangregeln & Vermischte Terme
+                        </h2>
+                        <span class="text-[10px] font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-300">Auffrischung</span>
+                    </div>
+                    <p class="text-[11px] text-slate-700">Berechne beide Terme unter Beachtung von Klammern und Punkt-vor-Strich. Kürze vollständig.</p>
+
+                    <div class="grid grid-cols-2 gap-3 text-[11px] font-medium">
+                        <div class="bg-slate-50 p-2 rounded border border-slate-300">
+                            <strong>a)</strong> $$\left(\frac{3}{4} - \frac{1}{6}\right) \cdot \frac{12}{7}$$
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded border border-slate-300">
+                            <strong>b)</strong> $$\frac{5}{8} + \frac{3}{8} \div \frac{9}{4}$$
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-slate-500 font-semibold mt-1">Nebenrechnungen & Lösungswege:</p>
+                    <div class="karo-grid h-40"></div>
+
+                    <div class="flex justify-between items-center text-[10px] font-bold pt-1 border-t border-slate-200">
+                        <span>Ergebnis a): __________ &nbsp;&nbsp; b): __________</span>
+                        <div class="bg-slate-100 border border-slate-400 px-2.5 py-1 rounded text-slate-900">
+                            Code-Ziffer 1 = Nenner von b) − Zähler von b) = [ &nbsp;&nbsp;&nbsp;&nbsp; ]
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTOR 2 PRINT -->
+                <div class="border-2 border-slate-900 rounded-lg p-3 bg-white space-y-2 prevent-break">
+                    <div class="flex justify-between items-center border-b border-slate-300 pb-1">
+                        <h2 class="font-bold text-xs text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                            <span class="w-5 h-5 bg-slate-900 text-white text-[10px] rounded flex items-center justify-center font-mono">02</span>
+                            Sektor 2: Fehler-Detektiv (Rechnung korrigieren)
+                        </h2>
+                        <span class="text-[10px] font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-300">Fehleranalyse</span>
+                    </div>
+                    <p class="text-[11px] text-slate-700">Schüler "Ben" hat bei folgender Aufgabe einen Fehler gemacht. Finde den Fehler und berechne das richtige Ergebnis!</p>
+
+                    <div class="bg-rose-50 border border-rose-300 p-2 rounded text-[11px] text-rose-950">
+                        <strong>Bens fehlerhafter Rechenweg:</strong> &nbsp;
+                        $$\frac{2}{3} + \frac{1}{3} \cdot \frac{1}{2} \;=\; \frac{3}{3} \cdot \frac{1}{2} \;=\; 1 \cdot \frac{1}{2} \;=\; \frac{1}{2} \quad \text{(FALSCH!)}$$
+                    </div>
+
+                    <p class="text-[10px] text-slate-500 font-semibold">Korrektes Ergebnis im Karo-Feld berechnen:</p>
+                    <div class="karo-grid h-36"></div>
+
+                    <div class="flex justify-between items-center text-[10px] font-bold pt-1 border-t border-slate-200">
+                        <span>Bens Fehler: _____________________________________</span>
+                        <div class="bg-slate-100 border border-slate-400 px-2.5 py-1 rounded text-slate-900">
+                            Code-Ziffer 2 = Nenner des richtigen Ergebnisses = [ &nbsp;&nbsp;&nbsp;&nbsp; ]
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center text-[9px] text-slate-400 font-semibold mt-6 pt-1 prevent-break">
+                    — Bitte umblättern zur Rückseite (Seite 2) —
+                </div>
+            </div>
+
+            <!-- PAGE 2: BACK SIDE -->
+            <div class="worksheet-page">
+                <!-- Header Page 2 -->
+                <div class="border-b-2 border-slate-900 pb-1 mb-2 flex justify-between items-center prevent-break">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-900">Das Rätsel des Arithmeum-Tresors • Seite 2</h2>
+                    <span class="text-[10px] text-slate-500 font-semibold">Sektor 3, Sektor 4 & Tresor-Code</span>
+                </div>
+
+                <!-- SECTOR 3 PRINT -->
+                <div class="border-2 border-slate-900 rounded-lg p-3 bg-white space-y-2 prevent-break mb-2">
+                    <div class="flex justify-between items-center border-b border-slate-300 pb-1">
+                        <h2 class="font-bold text-xs text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                            <span class="w-5 h-5 bg-slate-900 text-white text-[10px] rounded flex items-center justify-center font-mono">03</span>
+                            Sektor 3: Schulfest-Sachaufgabe & Pyramide
+                        </h2>
+                        <span class="text-[10px] font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-300">Anwendung</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-[10px]">
+                        <div>
+                            <strong class="text-slate-900">Teil A (Textaufgabe):</strong><br>
+                            Für das Schulfest stehen 120 Liter Getränke bereit. $\frac{3}{5}$ davon ist Apfelsaft, $\frac{1}{4}$ der Gesamtmenge ist Mineralwasser. Der Rest ist Orangensaft.<br>
+                            <em>Frage: Wie viele Liter sind Orangensaft?</em>
+                        </div>
+                        
+                        <!-- Print Visual Pyramid -->
+                        <div>
+                            <strong class="text-slate-900">Teil B (Multiplikations-Pyramide):</strong><br>
+                            Jeder Stein ist das Produkt ($\cdot$) der zwei darunter liegenden Steine. Rechne von unten nach oben!
+
+                            <div class="mt-1 flex flex-col items-center gap-1 font-mono text-[9px]">
+                                <!-- Top Row -->
+                                <div class="w-20 h-6 border-2 border-slate-900 bg-slate-100 rounded flex items-center justify-center font-bold">
+                                    [ ? ]
+                                </div>
+                                <!-- Middle Row -->
+                                <div class="flex gap-1.5">
+                                    <div class="w-16 h-5 border-2 border-slate-900 bg-slate-100 rounded flex items-center justify-center font-bold">[ ? ]</div>
+                                    <div class="w-16 h-5 border-2 border-slate-900 bg-slate-100 rounded flex items-center justify-center font-bold">[ ? ]</div>
+                                </div>
+                                <!-- Bottom Row -->
+                                <div class="flex gap-1.5">
+                                    <div class="w-12 h-5 border border-slate-400 bg-slate-50 rounded flex items-center justify-center text-[8px]">$\frac{-2}{3}$</div>
+                                    <div class="w-12 h-5 border border-slate-400 bg-slate-50 rounded flex items-center justify-center text-[8px]">$\frac{-1}{2}$</div>
+                                    <div class="w-12 h-5 border border-slate-400 bg-slate-50 rounded flex items-center justify-center text-[8px]">$\frac{-3}{2}$</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-slate-500 font-semibold mt-1">Nebenrechnungen & Lösungswege:</p>
+                    <div class="karo-grid h-32"></div>
+
+                    <div class="flex justify-between items-center text-[10px] font-bold pt-1 border-t border-slate-200">
+                        <span>Orangensaft (A): _____ Liter &nbsp;&nbsp; Pyramiden-Spitze (B): _____</span>
+                        <div class="bg-slate-100 border border-slate-400 px-2.5 py-1 rounded text-slate-900">
+                            Code-Ziffer 3 = Quersumme der Liter-Anzahl = [ &nbsp;&nbsp;&nbsp;&nbsp; ]
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTOR 4 PRINT -->
+                <div class="border-2 border-slate-900 rounded-lg p-3 bg-white space-y-2 prevent-break mb-2">
+                    <div class="flex justify-between items-center border-b border-slate-300 pb-1">
+                        <h2 class="font-bold text-xs text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                            <span class="w-5 h-5 bg-slate-900 text-white text-[10px] rounded flex items-center justify-center font-mono">04</span>
+                            Sektor 4: Der Meister-Doppelbruch (Knacknuss)
+                        </h2>
+                        <span class="text-[10px] font-semibold bg-rose-100 text-rose-800 px-2 py-0.5 rounded border border-rose-300">Hohes Niveau</span>
+                    </div>
+
+                    <p class="text-[11px] text-slate-700">Berechne den komplexen Doppelbruch schrittweise durch Ausrechnen von Zähler und Nenner. Kürze vollständig!</p>
+
+                    <div class="bg-slate-50 p-2 rounded border border-slate-300 text-center text-xs font-semibold">
+                        $$\frac{\left(2\frac{1}{2} - \frac{3}{4}\right) \cdot \frac{2}{7}}{\frac{5}{6} + \frac{1}{3} \div 2} = ?$$
+                    </div>
+
+                    <p class="text-[10px] text-slate-500 font-semibold">Detaillierter Rechenweg:</p>
+                    <div class="karo-grid h-36"></div>
+
+                    <div class="flex justify-between items-center text-[10px] font-bold pt-1 border-t border-slate-200">
+                        <span>Endergebnis des Doppelbruchs: ____________</span>
+                        <div class="bg-slate-100 border border-slate-400 px-2.5 py-1 rounded text-slate-900">
+                            Code-Ziffer 4 = Zähler + Nenner des Ergebnisses = [ &nbsp;&nbsp;&nbsp;&nbsp; ]
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CODE TRACKER BOX PRINT -->
+                <div class="border-2 border-slate-900 bg-slate-50 rounded-lg p-2.5 text-center mt-4 prevent-break">
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900 mb-1">Der 4-Stellige Arithmeum Tresor-Code</h3>
+                    <div class="inline-flex gap-4">
+                        <div class="w-14 h-14 border-2 border-slate-800 bg-white rounded flex flex-col items-center justify-center">
+                            <span class="text-[8px] text-slate-500 uppercase font-semibold whitespace-nowrap">Sektor 1</span>
+                            <span class="font-mono font-bold text-sm whitespace-nowrap">[&nbsp;&nbsp;]</span>
+                        </div>
+                        <div class="w-14 h-14 border-2 border-slate-800 bg-white rounded flex flex-col items-center justify-center">
+                            <span class="text-[8px] text-slate-500 uppercase font-semibold whitespace-nowrap">Sektor 2</span>
+                            <span class="font-mono font-bold text-sm whitespace-nowrap">[&nbsp;&nbsp;]</span>
+                        </div>
+                        <div class="w-14 h-14 border-2 border-slate-800 bg-white rounded flex flex-col items-center justify-center">
+                            <span class="text-[8px] text-slate-500 uppercase font-semibold whitespace-nowrap">Sektor 3</span>
+                            <span class="font-mono font-bold text-sm whitespace-nowrap">[&nbsp;&nbsp;]</span>
+                        </div>
+                        <div class="w-14 h-14 border-2 border-slate-800 bg-white rounded flex flex-col items-center justify-center">
+                            <span class="text-[8px] text-slate-500 uppercase font-semibold whitespace-nowrap">Sektor 4</span>
+                            <span class="font-mono font-bold text-sm whitespace-nowrap">[&nbsp;&nbsp;]</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // FRACTION EVALUATION ENGINE
+        function parseFraction(input) {
+            if (!input) return null;
+            input = input.trim().replace(',', '.');
+
+            let isNeg = false;
+            if (input.startsWith('-')) {
+                isNeg = true;
+                input = input.substring(1).trim();
+            }
+
+            // Mixed fraction: "1 1/2"
+            let mixed = input.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+            if (mixed) {
+                let val = parseInt(mixed[1]) + (parseInt(mixed[2]) / parseInt(mixed[3]));
+                return isNeg ? -val : val;
+            }
+
+            // Simple fraction: "3/4"
+            let frac = input.match(/^(\d+)\/(\d+)$/);
+            if (frac) {
+                let val = parseInt(frac[1]) / parseInt(frac[2]);
+                return isNeg ? -val : val;
+            }
+
+            // Decimal or Integer
+            let num = parseFloat(input);
+            if (!isNaN(num)) {
+                return isNeg ? -num : num;
+            }
+
+            return null;
+        }
+
+        function isApproxEqual(a, b) {
+            if (a === null || b === null) return false;
+            return Math.abs(a - b) < 0.0001;
+        }
+
+        // NAVIGATION & PRINTING
+        function switchView(view) {
+            const term = document.getElementById('terminalView');
+            const ws = document.getElementById('worksheetContainer');
+            const navTerm = document.getElementById('navTerminal');
+            const navWs = document.getElementById('navWorksheet');
+
+            if (view === 'terminal') {
+                term.classList.remove('hidden');
+                ws.classList.add('hidden');
+                navTerm.className = "px-4 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg flex items-center gap-2 transition-all";
+                navWs.className = "px-4 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider text-slate-400 hover:text-white flex items-center gap-2 transition-all";
+            } else {
+                term.classList.add('hidden');
+                ws.classList.remove('hidden');
+                navWs.className = "px-4 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg flex items-center gap-2 transition-all";
+                navTerm.className = "px-4 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider text-slate-400 hover:text-white flex items-center gap-2 transition-all";
+            }
+        }
+
+        function triggerPrint() {
+            switchView('worksheet');
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        function toggleHint(secNum) {
+            const hintBox = document.getElementById(`hintBox${secNum}`);
+            hintBox.classList.toggle('hidden');
+        }
+
+        // VERIFICATION LOGIC & DIGIT CALCULATIONS
+        // Correct Solutions:
+        // Sector 1:
+        // a) (3/4 - 1/6) * 12/7 = 7/12 * 12/7 = 1
+        // b) 5/8 + 3/8 : 9/4 = 5/8 + 3/8 * 4/9 = 5/8 + 1/6 = 15/24 + 4/24 = 19/24 -> Zähler = 19, Nenner = 24
+        // Code-Ziffer 1 = Nenner b - Zähler b = 24 - 19 = 5
+        //
+        // Sector 2:
+        // 2/3 + 1/3 * 1/2 = 2/3 + 1/6 = 4/6 + 1/6 = 5/6 (Nenner = 6) -> Code-Ziffer 2 = 6
+        //
+        // Sector 3:
+        // A: 120 - (3/5*120 + 1/4*120) = 120 - (72 + 30) = 18 Liter (Quersumme 1+8 = 9)
+        // B: Spitze = 1/3 * 3/4 = 1/4
+        // Code-Ziffer 3 = 9
+        //
+        // Sector 4:
+        // Doppelbruch = 1/2 (Zähler 1 + Nenner 2 = 3) -> Code-Ziffer 4 = 3
+        //
+        // TARGET TRESORE CODE = "5693"
+
+        const solvedSectors = { 1: false, 2: false, 3: false, 4: false };
+
+        function updateOverallProgress() {
+            const count = Object.values(solvedSectors).filter(Boolean).length;
+            document.getElementById('termProgressText').innerText = `${count} / 4 SEKTOREN`;
+            document.getElementById('termProgressBar').style.width = `${(count / 4) * 100}%`;
+        }
+
+        function markField(inputId, isCorrect) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const target = input.closest('.pyr-box') || input;
+            target.classList.remove('field-correct', 'field-incorrect');
+            if (isCorrect) {
+                target.classList.add('field-correct');
+            } else if (input.value.trim() !== '') {
+                target.classList.add('field-incorrect');
+            }
+        }
+
+        function clearFieldMark(input) {
+            const target = input.closest('.pyr-box') || input;
+            target.classList.remove('field-correct', 'field-incorrect');
+        }
+
+        function markSectorSolved(secNum, digitHint) {
+            solvedSectors[secNum] = true;
+            updateOverallProgress();
+
+            const card = document.getElementById(`cardSector${secNum}`);
+            card.classList.add('border-emerald-500');
+
+            const badge = document.getElementById(`badge${secNum}`);
+            badge.innerText = "FREIGESCHALTET";
+            badge.className = "text-[11px] font-bold font-tech px-2.5 py-1 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-700";
+        }
+
+        function verifySector1() {
+            const valA = parseFraction(document.getElementById('t_1a').value); // 1
+            const valB = parseFraction(document.getElementById('t_1b').value); // 19/24
+            const fb = document.getElementById('fb1');
+            markField('t_1a', isApproxEqual(valA, 1));
+            markField('t_1b', isApproxEqual(valB, 19/24));
+
+            if (isApproxEqual(valA, 1) && isApproxEqual(valB, 19/24)) {
+                fb.className = "text-xs p-3 rounded-xl font-mono bg-emerald-950/90 border border-emerald-600 text-emerald-200 block";
+                fb.innerHTML = `<strong><i class="fa-solid fa-circle-check text-emerald-400"></i> SEKTOR 1 FREIGESCHALTET!</strong><br>Beide Terme korrekt berechnet.<br>Code-Ziffer 1 lautet: <strong>5</strong>`;
+                markSectorSolved(1);
+            } else {
+                fb.className = "text-xs p-3 rounded-xl font-mono bg-rose-950/90 border border-rose-600 text-rose-200 block";
+                fb.innerHTML = `<strong><i class="fa-solid fa-circle-xmark text-rose-400"></i> Noch nicht ganz:</strong><br>Mindestens eines deiner Ergebnisse stimmt noch nicht. Rechne beide Terme in Ruhe noch einmal nach – nutze bei Bedarf den Tipp-Button.`;
+            }
+        }
+
+        function verifySector2() {
+            const val = parseFraction(document.getElementById('t_2').value); // 5/6
+            const fb = document.getElementById('fb2');
+            markField('t_2', isApproxEqual(val, 5/6));
+
+            if (isApproxEqual(val, 5/6)) {
+                fb.className = "text-xs p-3 rounded-xl font-mono bg-emerald-950/90 border border-emerald-600 text-emerald-200 block";
+                fb.innerHTML = `<strong><i class="fa-solid fa-circle-check text-emerald-400"></i> SEKTOR 2 FREIGESCHALTET!</strong><br>Richtiges Ergebnis: 5/6.<br>Code-Ziffer 2 lautet: <strong>6</strong>`;
+                markSectorSolved(2);
+            } else {
+                fb.className = "text-xs p-3 rounded-xl font-mono bg-rose-950/90 border border-rose-600 text-rose-200 block";
+                fb.innerHTML = `<strong><i class="fa-solid fa-circle-xmark text-rose-400"></i> Falsch.</strong> Achte auf die Punkt-vor-Strich-Regel und versuch es noch einmal – nutze bei Bedarf den Tipp-Button.`;
+            }
+        }
+
+        function verifySector3() {
+            const valA = parseFraction(document.getElementById('t_3a').value); // 18
+            const valM1 = parseFraction(document.getElementById('t_3b_m1').value); // 1/3
+            const valM2 = parseFraction(document.getElementById('t_3b_m2').value); // 3/4
+            const valB = parseFraction(document.getElementById('t_3b').value); // 1/4
+            const fb = document.getElementById('fb3');
+            markField('t_3a', isApproxEqual(valA, 18));
+            markField('t_3b_m1', isApproxEqual(valM1, 1/3));
+            markField('t_3b_m2', isApproxEqual(valM2, 3/4));
+            markField('t_3b', isApproxEqual(valB, 1/4));
+
+            if (isApproxEqual(valA, 18) && isApproxEqual(valM1, 1/3) && isApproxEqual(valM2, 3/4) && isApproxEqual(valB, 1/4)) {
+                fb.className = "text-xs p-3 rounded-xl font-mono bg-emerald-950/90 border border-emerald-600 text-emerald-200 block";
+                fb.innerHTML = `<strong><i class="fa-solid fa-circle-check text-emerald-400"></i> SEKTOR 3 FREIGESCHALTET!</strong><br>18 Liter & Pyramide korrekt bis zur Spitze 1/4 berechnet.<br>Code-Ziffer 3 lautet: <strong>9</strong>`;
+                markSectorSolved(3);
+            } else {
+                fb.className = "text-xs p-3 rounded-xl font-mono bg-rose-950/90 border border-rose-600 text-rose-200 block";
+                fb.innerHTML = `<strong><i class="fa-solid fa-circle-xmark text-rose-400"></i> Überprüfe deine Werte:</strong><br>Mindestens ein Feld stimmt noch nicht – prüfe Teil A und Teil B noch einmal. Nutze bei Bedarf den Tipp-Button.`;
+            }
+        }
+
+        function verifySector4() {
+            const val = parseFraction(document.getElementById('t_4').value); // 1/2
+            const fb = document.getElementById('fb4');
+            markField('t_4', isApproxEqual(val, 1/2));
+
+            if (isApproxEqual(val, 1/2)) {
+                fb.className = "text-xs p-3 rounded-xl font-mono bg-emerald-950/90 border border-emerald-600 text-emerald-200 block";
+                fb.innerHTML = `<strong><i class="fa-solid fa-circle-check text-emerald-400"></i> SEKTOR 4 FREIGESCHALTET!</strong><br>Doppelbruch = 1/2.<br>Code-Ziffer 4 lautet: <strong>3</strong>`;
+                markSectorSolved(4);
+            } else {
+                fb.className = "text-xs p-3 rounded-xl font-mono bg-rose-950/90 border border-rose-600 text-rose-200 block";
+                fb.innerHTML = `<strong><i class="fa-solid fa-circle-xmark text-rose-400"></i> Noch nicht korrekt.</strong><br>Rechne Zähler und Nenner des Doppelbruchs getrennt noch einmal nach – nutze bei Bedarf den Tipp-Button.`;
+            }
+        }
+
+        // NUMPAD LOGIC
+        let enteredDigits = [];
+        const TARGET_CODE = "5693";
+
+        function pressDigit(d) {
+            if (enteredDigits.length < 4) {
+                enteredDigits.push(d);
+                renderDigits();
+            }
+        }
+
+        function clearNumpad() {
+            enteredDigits = [];
+            renderDigits();
+            document.getElementById('vaultModal').className = "hidden";
+        }
+
+        function renderDigits() {
+            for (let i = 1; i <= 4; i++) {
+                const el = document.getElementById(`key${i}`);
+                if (enteredDigits[i - 1]) {
+                    el.innerText = enteredDigits[i - 1];
+                    el.className = "text-2xl font-mono font-bold text-amber-400";
+                } else {
+                    el.innerText = "_";
+                    el.className = "text-2xl font-mono font-bold text-slate-600";
+                }
+            }
+        }
+
+        function unlockVault() {
+            const code = enteredDigits.join('');
+            const modal = document.getElementById('vaultModal');
+            modal.classList.remove('hidden');
+
+            if (code === TARGET_CODE) {
+                modal.className = "max-w-md mx-auto p-4 rounded-xl font-mono text-xs bg-emerald-950 border-2 border-emerald-500 text-emerald-200 block shadow-2xl space-y-2";
+                modal.innerHTML = `
+                    <div class="text-center">
+                        <i class="fa-solid fa-lock-open text-4xl text-emerald-400 mb-2"></i>
+                        <h4 class="text-base font-bold font-tech text-white">TRESOR ERFOLGREICH GEÖFFNET!</h4>
+                        <p class="text-xs text-emerald-300 mt-1">Code ${TARGET_CODE} ist korrekt. Fantastische Leistung! Du hast das Bruchrechnen gemeistert!</p>
+                    </div>
+                `;
+
+                confetti({
+                    particleCount: 200,
+                    spread: 120,
+                    origin: { y: 0.6 }
+                });
+
+                const solCard = document.getElementById('fullSolutionCard');
+                solCard.classList.remove('hidden');
+                solCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                modal.className = "max-w-md mx-auto p-3 rounded-xl font-mono text-xs bg-rose-950 border border-rose-600 text-rose-200 block space-y-1";
+                modal.innerHTML = `
+                    <div class="text-center">
+                        <i class="fa-solid fa-triangle-exclamation text-xl text-rose-400 mb-1"></i>
+                        <p><strong>CODE FALSCH (${code || '---'})</strong></p>
+                        <p class="text-[11px] text-rose-300">Überprüfe deine errechneten Code-Ziffern aus den Sektoren 1 bis 4!</p>
+                    </div>
+                `;
+            }
+        }
+
+        // LEHRKRAFT-SHORTCUT: Strg+Shift+Enter zeigt sofort die komplette Musterlösung
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'Enter') {
+                e.preventDefault();
+                switchView('terminal');
+                const solCard = document.getElementById('fullSolutionCard');
+                solCard.classList.remove('hidden');
+                setTimeout(() => solCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+            }
+        });
+    </script>
+</body>
+</html>

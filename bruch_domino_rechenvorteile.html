@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domino-Kette: Rechenvorteile • Bruchrechnen Kl. 7/8</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --font-tech: 'Orbitron', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: #090d16;
+            color: #f1f5f9;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .font-tech { font-family: var(--font-tech); }
+        .font-code { font-family: var(--font-code); }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.90);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.7);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Fraction rendering */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            line-height: 1.05;
+            margin: 0 2px;
+            font-size: 0.82em;
+            position: relative;
+            top: 0.05em;
+        }
+        .frac .num, .frac .den {
+            padding: 0 2px;
+            display: block;
+        }
+        .frac .num {
+            border-bottom: 1.3px solid currentColor;
+        }
+
+        /* Domino tile */
+        .domino-tile {
+            display: flex;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #334155;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+            background: #0f172a;
+            user-select: none;
+        }
+        .domino-tile:hover {
+            transform: translateY(-3px);
+            border-color: #6366f1;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+        .domino-tile .half {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 6px 5px;
+        }
+        .domino-tile .val-half {
+            width: 40%;
+            background: #1e293b;
+            color: #67e8f9;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-right: 2px dashed #475569;
+        }
+        .domino-tile .expr-half {
+            width: 60%;
+            color: #c7d2fe;
+            font-size: 0.7rem;
+            line-height: 1.2;
+            flex-wrap: wrap;
+            gap: 1px 0;
+        }
+        .expr-group {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+        .mparen {
+            font-size: 1.3em;
+            font-weight: 400;
+            padding: 0 1px;
+        }
+        .domino-tile.anchor-tile {
+            border-color: #f59e0b;
+        }
+        .domino-tile.anchor-tile .val-half,
+        .domino-tile.anchor-tile .expr-half {
+            color: #fbbf24;
+        }
+
+        .domino-tile.placed {
+            cursor: default;
+            flex-shrink: 0;
+            width: 185px;
+        }
+        .domino-tile.placed:hover {
+            transform: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            border-color: #334155;
+        }
+        .domino-tile.placed.anchor-tile:hover {
+            border-color: #f59e0b;
+        }
+
+        .pool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+            gap: 12px;
+        }
+
+        @keyframes shakeTile {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+        .shake {
+            animation: shakeTile 0.4s ease;
+            border-color: #f43f5e !important;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-in {
+            animation: popIn 0.25s ease-out;
+        }
+
+        .chain-arrow {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            color: #475569;
+            font-size: 1.1rem;
+        }
+
+        /* Solution list */
+        .solution-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+        .sol-num {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: #1e293b;
+            color: #67e8f9;
+            font-weight: 700;
+            font-size: 0.68rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sol-value {
+            flex-shrink: 0;
+            min-width: 44px;
+            text-align: center;
+            color: #67e8f9;
+            font-weight: 700;
+        }
+        .sol-sep {
+            flex-shrink: 0;
+            color: #475569;
+        }
+        .sol-body {
+            color: #c7d2fe;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .sol-answer {
+            color: #6ee7b7;
+            font-weight: 700;
+        }
+        .sol-inter {
+            color: #93c5fd;
+        }
+        .sol-eq {
+            color: #475569;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-white sticky top-0 z-50 shadow-xl">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 text-white flex items-center justify-center font-bold text-lg shadow-lg">
+                    <i class="fa-solid fa-chess-board"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold font-tech tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-cyan-300 to-emerald-400">
+                        DOMINO-KETTE
+                    </h1>
+                    <p class="text-xs text-slate-400">Rechenvorteile mit Brüchen • Klasse 7 & 8</p>
+                </div>
+            </div>
+            <a href="index.html" class="px-4 py-2 rounded-lg text-xs font-bold font-tech uppercase tracking-wider bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-house"></i> Hauptmenü
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Briefing -->
+        <div class="glass-card rounded-2xl p-6 border border-slate-800 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-extrabold font-tech text-white">Lege die Dominoschlange richtig</h2>
+                    <p class="text-xs md:text-sm text-slate-400 mt-2 max-w-2xl leading-relaxed">
+                        Jeder Stein zeigt links eine <strong class="text-cyan-300">Zahl</strong> und rechts eine <strong class="text-indigo-300">Rechenaufgabe</strong>.
+                        Berechne die Rechenaufgabe des letzten gelegten Steins (im Kopf oder auf einem Schmierzettel) und klicke dann im Vorrat auf den Stein, dessen linke Zahl zu deinem Ergebnis passt.
+                        So legst du Stein für Stein eine durchgehende Kette &ndash; ganz wie beim echten Domino.
+                    </p>
+                    <p class="text-xs text-amber-300 mt-2"><i class="fa-solid fa-circle-info"></i> Start: Klicke zuerst den <strong>Start-Stein</strong> (orange umrandet, ohne Zahl links). Die Kette endet am <strong>Ziel-Stein</strong> (ohne Rechenaufgabe rechts).</p>
+                </div>
+                <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 min-w-[190px] text-center shadow-inner">
+                    <div class="text-[10px] font-bold font-tech uppercase tracking-wider text-slate-400 mb-1">Steine gelegt</div>
+                    <div class="text-2xl font-black font-tech text-emerald-400 mb-2" id="progressText">0 / 16</div>
+                    <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                        <div id="progressBar" class="bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 h-full w-0 rounded-full transition-all duration-500"></div>
+                    </div>
+                    <button onclick="resetGame()" class="mt-3 w-full text-[11px] font-bold font-tech uppercase tracking-wider bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 rounded-lg py-1.5 transition-all">
+                        <i class="fa-solid fa-rotate-right"></i> Neu mischen
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback -->
+        <div id="feedback" class="hidden text-sm p-3 rounded-xl font-mono border"></div>
+
+        <!-- Chain area -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold font-tech text-sm text-white uppercase tracking-wide">
+                    <i class="fa-solid fa-link text-indigo-400"></i> Deine Dominoschlange
+                </h3>
+                <button onclick="toggleHint()" class="text-[11px] font-bold font-tech uppercase tracking-wider bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-lg px-3 py-1.5 transition-all">
+                    <i class="fa-solid fa-lightbulb"></i> Tipp
+                </button>
+            </div>
+            <div id="hintBox" class="hidden text-xs bg-amber-950/40 border border-amber-800/60 text-amber-200 p-3 rounded-xl mb-3"></div>
+            <div id="chainArea" class="flex items-center gap-2 overflow-x-auto pb-3 min-h-[90px]">
+                <span class="text-xs text-slate-500 italic">Noch kein Stein gelegt &ndash; starte mit dem Start-Stein unten im Vorrat.</span>
+            </div>
+        </div>
+
+        <!-- Pool area -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800">
+            <h3 class="font-bold font-tech text-sm text-white uppercase tracking-wide mb-3">
+                <i class="fa-solid fa-layer-group text-cyan-400"></i> Stein-Vorrat
+            </h3>
+            <div id="poolArea" class="pool-grid"></div>
+        </div>
+
+        <!-- Solution -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800">
+            <button onclick="toggleSolution()" class="w-full text-left text-xs font-bold font-tech uppercase tracking-wider text-slate-400 hover:text-white flex items-center gap-2 transition-all">
+                <i class="fa-solid fa-list-ol"></i> Gesamte Lösungskette anzeigen
+            </button>
+            <div id="solutionBox" class="hidden mt-3"></div>
+        </div>
+
+    </main>
+
+    <script>
+        // ---------- Fraction helper ----------
+        function frac(n, d) {
+            return `<span class="frac"><span class="num">${n}</span><span class="den">${d}</span></span>`;
+        }
+        // Wraps "(inner)" so the closing bracket can never be separated from its content by a line break.
+        function grp(inner) {
+            return `<span class="expr-group"><span class="mparen">(</span>${inner}<span class="mparen">)</span></span>`;
+        }
+
+        // ---------- Tile data (from the printed fraction-domino worksheet) ----------
+        // Each tile = one physical card: a value (left) and an expression (right).
+        // value_num === null  -> the START tile (no value, marked by the snake head)
+        // answer_num === null -> the END tile (no expression, marked by the snake tail)
+        const TILES = [
+            { id: 1,  valueHTML: `1`,                                   value_num: 1,        exprHTML: null,                                                              interHTML: null, answer_num: null,  plain: '1  |  (Ziel-Stein)' },
+            { id: 2,  valueHTML: `36`,                                  value_num: 36,       exprHTML: `${frac(1,2)} &middot; ${grp(frac(4,34) + ' &minus; ' + frac(2,17))} =`,   interHTML: `${frac(1,2)} &middot; 0`, answer_num: 0,      plain: '36  |  1/2 · (4/34 − 2/17) = 0' },
+            { id: 3,  valueHTML: null,                                  value_num: null,     exprHTML: `${frac(1,3)} &middot; 4 &minus; ${frac(7,3)} =`,                  interHTML: `${frac(4,3)} &minus; ${frac(7,3)}`, answer_num: -1,     plain: '(Start-Stein)  |  1/3 · 4 − 7/3 = −1' },
+            { id: 4,  valueHTML: `&minus;0,7`,                          value_num: -0.7,     exprHTML: `4${frac(2,3)} : ${frac(7,6)} =`,                                  interHTML: `${frac(14,3)} &middot; ${frac(6,7)}`, answer_num: 4,      plain: '−0,7  |  4 2/3 : 7/6 = 4' },
+            { id: 5,  valueHTML: `0`,                                   value_num: 0,        exprHTML: `${grp('&minus;' + frac(7,2) + ' + ' + frac(3,4))} : 3 =`,         interHTML: `&minus;${frac(11,4)} : 3`, answer_num: -11/12, plain: '0  |  (−7/2 + 3/4) : 3 = −11/12' },
+            { id: 6,  valueHTML: `&minus;1`,                            value_num: -1,       exprHTML: `${frac(5,6)} &middot; ${grp(frac(6,8) + ' &minus; ' + frac(6,24))} =`,    interHTML: `${frac(5,6)} &middot; ${frac(1,2)}`, answer_num: 5/12,   plain: '−1  |  5/6 · (6/8 − 6/24) = 5/12' },
+            { id: 7,  valueHTML: `${frac(5,27)}`,                       value_num: 5/27,     exprHTML: `${frac(7,11)} &minus; 3 &middot; ${frac(1,22)} =`,                interHTML: `${frac(7,11)} &minus; ${frac(3,22)}`, answer_num: 0.5,    plain: '5/27  |  7/11 − 3 · 1/22 = 1/2' },
+            { id: 8,  valueHTML: `&minus;${frac(2,3)}`,                 value_num: -2/3,     exprHTML: `5 : ${frac(1,8)} &minus; ${frac(20,5)} =`,                        interHTML: `40 &minus; 4`, answer_num: 36,     plain: '−2/3  |  5 : 1/8 − 20/5 = 36' },
+            { id: 9,  valueHTML: `&minus;${frac(7,4)}`,                 value_num: -1.75,    exprHTML: `${frac(3,19)} : ${grp('+' + frac(3,19))} =`,                      interHTML: `${frac(3,19)} &middot; ${frac(19,3)}`, answer_num: 1,      plain: '−7/4  |  3/19 : (+3/19) = 1' },
+            { id: 10, valueHTML: `&minus;6`,                            value_num: -6,       exprHTML: `${frac(7,4)} &middot; ${grp(frac(1,2) + ' &minus; ' + frac(12,8))} =`,    interHTML: `${frac(7,4)} &middot; (&minus;1)`, answer_num: -1.75,  plain: '−6  |  7/4 · (1/2 − 12/8) = −7/4' },
+            { id: 11, valueHTML: `${frac(5,12)}`,                       value_num: 5/12,     exprHTML: `${grp(frac(1,8))}&sup2; &minus; 1 =`,                             interHTML: `${frac(1,64)} &minus; 1`, answer_num: -63/64, plain: '5/12  |  (1/8)² − 1 = −63/64' },
+            { id: 12, valueHTML: `4`,                                   value_num: 4,        exprHTML: `${frac(4,9)} &middot; ${frac(1,4)} &minus; ${frac(4,9)} &middot; ${frac(7,4)} =`, interHTML: `${frac(4,9)} &middot; ${grp('&minus;' + frac(6,4))}`, answer_num: -2/3, plain: '4  |  4/9 · 1/4 − 4/9 · 7/4 = −2/3' },
+            { id: 13, valueHTML: `&minus;${frac(11,12)}`,               value_num: -11/12,   exprHTML: `${grp(frac(1,2) + ' &minus; 2' + frac(1,2))} &middot; 3 =`,       interHTML: `(&minus;2) &middot; 3`, answer_num: -6,     plain: '−11/12  |  (1/2 − 2 1/2) · 3 = −6' },
+            { id: 14, valueHTML: `${frac(1,2)}`,                        value_num: 0.5,      exprHTML: `${frac(3,4)} &middot; 7 =`,                                       interHTML: `${frac(21,4)}`, answer_num: 5.25,   plain: '1/2  |  3/4 · 7 = 5 1/4' },
+            { id: 15, valueHTML: `5${frac(1,4)}`,                       value_num: 5.25,     exprHTML: `&minus;${grp(frac(3,10) + ' + 2 &middot; ' + frac(1,5))} =`,       interHTML: `&minus;${grp(frac(3,10) + ' + ' + frac(2,5))}`, answer_num: -0.7,   plain: '5 1/4  |  −(3/10 + 2 · 1/5) = −0,7' },
+            { id: 16, valueHTML: `&minus;${frac(63,64)}`,               value_num: -63/64,   exprHTML: `${frac(5,9)} : 3 =`,                                              interHTML: `${frac(5,9)} &middot; ${frac(1,3)}`, answer_num: 5/27,   plain: '−63/64  |  5/9 : 3 = 5/27' },
+        ];
+
+        function getTile(id) { return TILES.find(t => t.id === id); }
+        function isApproxEqual(a, b) {
+            if (a === null || a === undefined || b === null || b === undefined) return false;
+            return Math.abs(a - b) < 0.0001;
+        }
+        function findTileByValue(num) {
+            return TILES.find(t => t.value_num !== null && isApproxEqual(t.value_num, num) && !chain.includes(t.id));
+        }
+
+        // ---------- Game state ----------
+        let pool = [];
+        let chain = [];
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        function resetGame() {
+            pool = TILES.map(t => t.id);
+            shuffle(pool);
+            chain = [];
+            document.getElementById('hintBox').classList.add('hidden');
+            document.getElementById('feedback').classList.add('hidden');
+            renderPool();
+            renderChain();
+            updateProgress();
+        }
+
+        function tileHTML(tile, extraClasses) {
+            const isAnchor = (tile.value_num === null || tile.answer_num === null);
+            const valContent = tile.valueHTML !== null ? tile.valueHTML : '<i class="fa-solid fa-flag-checkered"></i>';
+            const exprContent = tile.exprHTML !== null ? tile.exprHTML : '<i class="fa-solid fa-trophy"></i>';
+            return `
+                <div class="domino-tile ${isAnchor ? 'anchor-tile' : ''} ${extraClasses || ''}" data-id="${tile.id}" onclick="handleTileClick(${tile.id})">
+                    <div class="half val-half">${valContent}</div>
+                    <div class="half expr-half">${exprContent}</div>
+                </div>`;
+        }
+
+        function renderPool() {
+            const el = document.getElementById('poolArea');
+            if (pool.length === 0) {
+                el.innerHTML = `<span class="text-xs text-slate-500 italic">Alle Steine sind verbaut &ndash; geschafft!</span>`;
+                return;
+            }
+            el.innerHTML = pool.map(id => tileHTML(getTile(id), 'pop-in')).join('');
+        }
+
+        function renderChain() {
+            const el = document.getElementById('chainArea');
+            if (chain.length === 0) {
+                el.innerHTML = `<span class="text-xs text-slate-500 italic">Noch kein Stein gelegt &ndash; starte mit dem Start-Stein unten im Vorrat.</span>`;
+                return;
+            }
+            el.innerHTML = chain.map((id, idx) => {
+                const arrow = idx > 0 ? `<span class="chain-arrow"><i class="fa-solid fa-arrow-right-long"></i></span>` : '';
+                return arrow + tileHTML(getTile(id), 'placed pop-in');
+            }).join('');
+            el.scrollLeft = el.scrollWidth;
+        }
+
+        function updateProgress() {
+            document.getElementById('progressText').innerText = `${chain.length} / ${TILES.length}`;
+            document.getElementById('progressBar').style.width = `${(chain.length / TILES.length) * 100}%`;
+        }
+
+        function showFeedback(type, html) {
+            const fb = document.getElementById('feedback');
+            fb.classList.remove('hidden');
+            if (type === 'success') {
+                fb.className = "text-sm p-3 rounded-xl font-mono bg-emerald-950/90 border border-emerald-600 text-emerald-200 block";
+            } else if (type === 'error') {
+                fb.className = "text-sm p-3 rounded-xl font-mono bg-rose-950/90 border border-rose-600 text-rose-200 block";
+            } else {
+                fb.className = "text-sm p-3 rounded-xl font-mono bg-amber-950/40 border border-amber-800/60 text-amber-200 block";
+            }
+            fb.innerHTML = html;
+        }
+
+        function handleTileClick(id) {
+            // clicking an already-placed tile does nothing
+            if (chain.includes(id)) return;
+            const tile = getTile(id);
+
+            if (chain.length === 0) {
+                if (tile.value_num !== null) {
+                    showFeedback('error', `<strong><i class="fa-solid fa-circle-xmark"></i> Das ist nicht der Start-Stein.</strong> Beginne mit dem orange umrandeten Stein ohne Zahl links.`);
+                    shakeTile(id);
+                    return;
+                }
+            } else {
+                const lastTile = getTile(chain[chain.length - 1]);
+                if (lastTile.answer_num === null) return; // chain already finished
+                if (tile.value_num === null || !isApproxEqual(tile.value_num, lastTile.answer_num)) {
+                    showFeedback('error', `<strong><i class="fa-solid fa-circle-xmark"></i> Das passt noch nicht.</strong> Rechne die Aufgabe des letzten Steins noch einmal nach.`);
+                    shakeTile(id);
+                    return;
+                }
+            }
+
+            // valid placement
+            pool = pool.filter(x => x !== id);
+            chain.push(id);
+            renderPool();
+            renderChain();
+            updateProgress();
+            document.getElementById('hintBox').classList.add('hidden');
+
+            if (tile.answer_num === null) {
+                showFeedback('success', `<strong><i class="fa-solid fa-trophy text-amber-300"></i> Geschafft!</strong> Du hast alle 16 Steine zu einer korrekten Dominoschlange gelegt!`);
+                confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
+            } else {
+                showFeedback('success', `<strong><i class="fa-solid fa-circle-check"></i> Richtig gelegt!</strong> Berechne jetzt die neue Aufgabe und suche den passenden Stein.`);
+            }
+        }
+
+        function shakeTile(id) {
+            const el = document.querySelector(`#poolArea .domino-tile[data-id="${id}"]`);
+            if (!el) return;
+            el.classList.add('shake');
+            setTimeout(() => el.classList.remove('shake'), 400);
+        }
+
+        function toggleHint() {
+            const box = document.getElementById('hintBox');
+            if (!box.classList.contains('hidden')) {
+                box.classList.add('hidden');
+                return;
+            }
+            if (chain.length === 0) {
+                box.innerHTML = `Suche den Stein mit dem orangen Rahmen &ndash; das ist der Start-Stein ohne linke Zahl.`;
+            } else {
+                const lastTile = getTile(chain[chain.length - 1]);
+                if (lastTile.answer_num === null) {
+                    box.innerHTML = `Die Kette ist bereits vollständig!`;
+                } else {
+                    const nextTile = findTileByValue(lastTile.answer_num);
+                    box.innerHTML = `Du suchst einen Stein, dessen linke Zahl so aussieht: <span class="text-cyan-300 font-bold">${nextTile ? nextTile.valueHTML : '?'}</span>`;
+                }
+            }
+            box.classList.remove('hidden');
+        }
+
+        function toggleSolution() {
+            const box = document.getElementById('solutionBox');
+            box.classList.toggle('hidden');
+            if (box.classList.contains('hidden') || box.innerHTML) return;
+
+            // Walk the correct chain starting at the tile with value_num === null
+            let order = [];
+            let current = TILES.find(t => t.value_num === null);
+            while (current) {
+                order.push(current);
+                if (current.answer_num === null) break;
+                current = findInAllByValue(current.answer_num, order);
+            }
+            box.innerHTML = order.map((t, i) => {
+                const valueDisplay = t.valueHTML !== null ? t.valueHTML : '<i class="fa-solid fa-flag-checkered"></i>';
+                let body;
+                if (t.exprHTML !== null) {
+                    const answerDisplay = (i + 1 < order.length) ? order[i + 1].valueHTML : '';
+                    const interPart = t.interHTML ? `<span class="sol-inter">${t.interHTML}</span><span class="sol-eq">=</span>` : '';
+                    body = `<span>${t.exprHTML}</span>${interPart}<span class="sol-answer">${answerDisplay}</span>`;
+                } else {
+                    body = `<i class="fa-solid fa-trophy text-amber-300"></i> <span class="text-slate-400">Ziel erreicht</span>`;
+                }
+                return `
+                    <div class="solution-row">
+                        <span class="sol-num">${i + 1}</span>
+                        <span class="sol-value">${valueDisplay}</span>
+                        <span class="sol-sep"><i class="fa-solid fa-arrow-right"></i></span>
+                        <span class="sol-body">${body}</span>
+                    </div>`;
+            }).join('');
+        }
+
+        function findInAllByValue(num, exclude) {
+            return TILES.find(t => t.value_num !== null && isApproxEqual(t.value_num, num) && !exclude.includes(t));
+        }
+
+        // init
+        resetGame();
+    </script>
+</body>
+</html>
